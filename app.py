@@ -55,25 +55,28 @@ def index():
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    # Get the image from the front end (base64 encoded)
-    data = request.json
-    img_data = base64.b64decode(data['image'].split(',')[1])
+    try:
+        data = request.json
+        print("Received data:", data)
 
-    # Convert the byte data to an image
-    img = Image.open(BytesIO(img_data))
-    img = np.array(img)
+        img_data = base64.b64decode(data['image'].split(',')[1])
 
-    # Predict on the frame
-    results = model.predict(img, conf=0.6, imgsz=640)
-    
-    # Get the annotated image
-    annotated_frame = results[0].plot()
+        img = Image.open(BytesIO(img_data)).convert('RGB')
+        img = np.array(img)
 
-    # Convert the result to base64
-    _, buffer = cv2.imencode('.jpg', annotated_frame)
-    encoded_image = base64.b64encode(buffer).decode('utf-8')
+        # Predict
+        results = model.predict(img, conf=0.6, imgsz=320)
+        annotated_frame = results[0].plot()
 
-    return jsonify({'image': 'data:image/jpeg;base64,' + encoded_image})
+        # Convert to base64
+        _, buffer = cv2.imencode('.jpg', annotated_frame)
+        encoded_image = base64.b64encode(buffer).decode('utf-8')
+
+        return jsonify({'image': 'data:image/jpeg;base64,' + encoded_image})
+
+    except Exception as e:
+        print("ERROR during prediction:", e)
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0')
