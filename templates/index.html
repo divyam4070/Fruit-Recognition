@@ -1,65 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Fruit Detection Web App</title>
     <style>
-        video {
-            width: 640px;
-            height: 480px;
-        }
-        #output {
-            width: 640px;
-            height: 480px;
-        }
+      video {
+        width: 640px;
+        height: 480px;
+        display: none;
+      }
+      #output {
+        width: 640px;
+        height: 480px;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <h1>Fruit Detection with YOLO</h1>
-    
+
     <video id="webcam" autoplay></video>
     <canvas id="output"></canvas>
 
     <script>
-        const webcam = document.getElementById('webcam');
-        const outputCanvas = document.getElementById('output');
-        const outputCtx = outputCanvas.getContext('2d');
+      const webcam = document.getElementById("webcam");
+      const outputCanvas = document.getElementById("output");
+      const outputCtx = outputCanvas.getContext("2d");
 
-        // Access webcam
-        async function startWebcam() {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-            webcam.srcObject = stream;
-        }
+      // Access webcam
+      async function startWebcam() {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+        });
+        webcam.srcObject = stream;
+      }
 
-        // Capture a frame and send it to the Flask server
-        async function captureAndPredict() {
-            outputCtx.drawImage(webcam, 0, 0, outputCanvas.width, outputCanvas.height);
-            const imageData = outputCanvas.toDataURL('image/jpeg');
+      // Capture a frame and send it to the Flask server
+      async function captureAndPredict() {
+        outputCtx.drawImage(
+          webcam,
+          0,
+          0,
+          outputCanvas.width,
+          outputCanvas.height
+        );
+        const imageData = outputCanvas.toDataURL("image/jpeg");
 
-            // Send the image to the Flask backend for prediction
-            const response = await fetch('/predict', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image: imageData })
-            });
+        // Send the image to the Flask backend for prediction
+        const response = await fetch("/predict", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ image: imageData }),
+        });
 
-            const result = await response.json();
-            const predictedImage = result.image;
+        const result = await response.json();
+        const predictedImage = result.image;
 
-            // Update the canvas with the annotated image
-            outputCanvas.width = 640; // reset canvas width
-            outputCanvas.height = 480; // reset canvas height
-            const img = new Image();
-            img.src = predictedImage;
-            img.onload = () => {
-                outputCtx.drawImage(img, 0, 0);
-            };
-        }
+        // Update the canvas with the annotated image
+        outputCanvas.width = 640; // reset canvas width
+        outputCanvas.height = 480; // reset canvas height
+        const img = new Image();
+        img.src = predictedImage;
+        img.onload = () => {
+          outputCtx.drawImage(img, 0, 0);
+        };
+      }
 
-        // Start webcam and capture every 100ms
-        startWebcam();
-        setInterval(captureAndPredict, 100);  // Capture and predict every 100ms
+      // Start webcam and capture every 100ms
+      startWebcam();
+      setInterval(captureAndPredict, 1000); // Capture and predict every 100ms
     </script>
-</body>
+  </body>
 </html>

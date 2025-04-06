@@ -65,7 +65,7 @@ def predict():
         img = np.array(img)
 
         # Predict
-        results = model.predict(img, conf=0.6, imgsz=320)
+        results = model.predict(img, conf=0.6, imgsz=320, show = True, save = False)
         annotated_frame = results[0].plot()
 
         # Convert to base64
